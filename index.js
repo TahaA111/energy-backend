@@ -1,3 +1,7 @@
+//this loads dotenv 
+require('dotenv').config();
+
+
 // This gives me access to the express library
 const express = require('express');
 
@@ -26,6 +30,24 @@ db.exec(schema);
 // app.get handles someone visiting the root page and replies with a message that the server is running
 app.get('/', function(req, res) {
   res.send('Hello, server is running!');
+});
+
+app.post('/cost', function(req, res){
+
+  const url = 'https://api.eia.gov/v2/electricity/retail-sales/data/?api_key=' + process.env.EIA_API_KEY + '&frequency=monthly&data[]=price&facets[stateid][]=CA&facets[sectorid][]=RES&sort[0][column]=period&sort[0][direction]=desc&length=1';
+
+  fetch (url)
+    .then(function(res2){ return res2.json(); })
+    .then(function(data){
+        let price = Number(data.response.data[0].price);
+        let pricePerKwhInDollars = price / 100 ;
+        let cost = req.body.total * pricePerKwhInDollars;
+        cost = Math.round(cost * 100) / 100;
+
+        res.send({ cost : cost });
+    });
+
+
 });
 
 // app.post handles a single reading being sent to /readings, inserts it, and replies that it was received
