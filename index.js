@@ -5,27 +5,24 @@ require('dotenv').config();
 // This gives me access to the express library
 const express = require('express');
 
-// This gives me access to the sqlite3 library
-const sqlite3 = require('sqlite3');
-
 const cors = require('cors');
 
+// This gives me access to the shared db connection built in db.js
+const db = require('./db');
+
+// This gives me access to the signup/login routes built in auth.js
+const authRoutes = require('./auth');
 
 // This creates an express object for me to use
 const app = express();
-
-const fs = require('fs');
-const schema = fs.readFileSync('db.sql', 'utf8');
 
 // This translates incoming JSON text into a usable object on req.body
 app.use(express.json());
 app.use(cors());
 
-// This creates (or connects to) the database through the sqlite3 library
-const db = new sqlite3.Database('energy.db');
-
-// Runs the full schema file (both CREATE TABLE statements) against the database
-db.exec(schema);
+// Every route inside auth.js is now reachable under /auth
+// (so /auth/signup and /auth/login)
+app.use('/auth', authRoutes);
 
 // app.get handles someone visiting the root page and replies with a message that the server is running
 app.get('/', function(req, res) {
@@ -52,13 +49,15 @@ app.post('/cost', function(req, res){
 
 // app.post handles a single reading being sent to /readings, inserts it, and replies that it was received
 app.post('/readings', function(req, res) {
-  db.run('INSERT INTO readings (date, kwh) VALUES (?,?)', [req.body.date, req.body.kwh]);
-  res.send('Data received');
+  for (let i = 0; i < req.body.length; i++){
+  db.run('INSERT INTO readings (date, kwh) VALUES (?,?)', [req.body[i].date, req.body[i].kwh]);
+  }
+  res.send('Batch received');
 });
 
 // app.post handles a summary being sent to /summaries, inserts it, and replies that it was received
 app.post('/summaries', function(req, res) {
-  db.run('INSERT INTO summaries (total, average, min, max) VALUES (?,?,?,?)', [req.body.total, req.body.average, req.body.min, req.body.max], function(err) {
+  db.run('INSERT INTO summaries (total, average, min, max, cost) VALUES (?,?,?,?,?)', [req.body.total, req.body.average, req.body.min, req.body.max, req.body.cost], function(err) {
     if (err) {
       console.log('INSERT ERROR:', err.message);
     } else {

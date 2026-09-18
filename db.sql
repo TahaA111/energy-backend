@@ -9,5 +9,13 @@ CREATE TABLE IF NOT EXISTS summaries (
     total REAL,
     average REAL,
     min REAL,
-    max REAL
+    max REAL,
+    cost REAL
 );
+CREATE TABLE IF NOT EXISTS users ( 
+    id INTEGER PRIMARY KEY,
+     name TEXT, 
+     email TEXT UNIQUE,
+      username TEXT UNIQUE,
+       password TEXT
+       );
