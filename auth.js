@@ -19,7 +19,38 @@ bcrypt.hash(password, 10, function(err, hashedPassword){
 
 });
 
+router.post('/login', function (req, res) {
+const email = req.body.email;
+const password = req.body.password;
+
+db.get('SELECT * FROM users WHERE email = ?', [email], function(err, user){
+
+    if (!user) {
+        return res.status(401).send({ error: 'invalid email or password'});
+    }
+
+    bcrypt.compare(password, user.password, function(err, passwordMatches){
+
+    if (!passwordMatches) {
+        return res.status(401).send({ error : 'invalid email or password'}); 
+
+    }
+
+    req.session.user = {
+        id: user.id,
+        username: user.username,
+        email: user.email
+    };
+
+    res.send({ message: 'login successful', userId: user.id, username: user.username });
+
+    
+    
+    
+
+});
+});
+});
+
+
 module.exports = router;
-
-
-
