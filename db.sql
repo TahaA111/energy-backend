@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS readings (
     id INTEGER PRIMARY KEY,
     date TEXT,
-    kwh REAL
+    kwh REAL,
+    user_id INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS summaries (
@@ -10,7 +11,8 @@ CREATE TABLE IF NOT EXISTS summaries (
     average REAL,
     min REAL,
     max REAL,
-    cost REAL
+    cost REAL,
+    user_id INTEGER REFERENCES users(id)
 );
 CREATE TABLE IF NOT EXISTS users ( 
     id INTEGER PRIMARY KEY,

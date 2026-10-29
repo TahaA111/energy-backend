@@ -15,5 +15,15 @@ db.run('ALTER TABLE summaries ADD COLUMN cost REAL', function(err) {
     console.log('ALTER ERROR:', err.message);
   }
 });
+db.run('ALTER TABLE summaries ADD COLUMN user_id INTEGER REFERENCES users(id)', function(err){
+    if (err && !err.message.includes('duplicate column')) {
+      console.log('ALTER ERROR:', err.message);
+    }
+  });
+  db.run('ALTER TABLE readings ADD COLUMN user_id INTEGER REFERENCES users(id)', function(err){
+    if (err && !err.message.includes('duplicate column')) {
+      console.log('ALTER ERROR:', err.message);
+    }
+  });
 
 module.exports = db;
