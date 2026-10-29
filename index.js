@@ -30,7 +30,7 @@ const session = require('express-session');
 app.use(express.json());
 app.use(cors({
 
-  origin: 'http://127.0.0.1:5500',
+  origin: ['http://127.0.0.1:5500', 'http://127.0.0.1:5501'],
   credentials: true
 
 }));
@@ -46,7 +46,7 @@ app.use(session({
 
 app.get('/readings', requireLogin, function(req, res){
 
-  db.all('SELECT * FROM readings', function(err, rows){
+  db.all('SELECT * FROM readings WHERE user_id = ?', [req.session.user.id], function(err, rows){
     res.send(rows);
   });
 });
@@ -84,18 +84,20 @@ app.post('/cost', requireLogin, function(req, res){
 // app.post handles a single reading being sent to /readings, inserts it, and replies that it was received
 app.post('/readings', requireLogin, function(req, res) {
   for (let i = 0; i < req.body.length; i++){
-  db.run('INSERT INTO readings (date, kwh) VALUES (?,?)', [req.body[i].date, req.body[i].kwh]);
+  db.run('INSERT INTO readings (date, kwh, user_id) VALUES (?,?,?)', [req.body[i].date, req.body[i].kwh, req.session.user.id]);
   }
   res.send('Batch received');
 });
 
 // app.post handles a summary being sent to /summaries, inserts it, and replies that it was received
 app.post('/summaries', requireLogin, function(req, res) {
-  db.run('INSERT INTO summaries (total, average, min, max, cost) VALUES (?,?,?,?,?)', [req.body.total, req.body.average, req.body.min, req.body.max, req.body.cost], function(err) {
+  db.run('INSERT INTO summaries (total, average, min, max, cost, user_id) VALUES (?,?,?,?,?,?)', [req.body.total, req.body.average, req.body.min, req.body.max, req.body.cost, req.session.user.id], function(err) {
     if (err) {
       console.log('INSERT ERROR:', err.message);
+      res.status(500).send({ error: 'Failed to save summary' });
     } else {
       console.log('INSERT SUCCESS, row id:', this.lastID);
+      res.send({ message: 'Summary received', summaryID: this.lastID });
     }
   });
 });
