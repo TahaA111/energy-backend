@@ -46,7 +46,7 @@ app.use(session({
 
 app.get('/readings', requireLogin, function(req, res){
 
-  db.all('SELECT * FROM readings WHERE user_id = ?', [req.session.user.id], function(err, rows){
+  db.all('SELECT * FROM readings WHERE user_id = ? ORDER BY date DESC', [req.session.user.id], function(err, rows){
     res.send(rows);
   });
 });
