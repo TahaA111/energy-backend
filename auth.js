@@ -5,6 +5,9 @@ const db = require('./db');
 const router = express.Router();
 
 router.post('/signup', function(req, res){
+    if(!email || !password || !username) {
+        return res.status(400).send({ error: 'username, email, and password are required' });
+    }
 const username = req.body.username;
 const email = req.body.email;
 const password = req.body.password;
@@ -12,8 +15,20 @@ const password = req.body.password;
 
 bcrypt.hash(password, 10, function(err, hashedPassword){
 
-    db.run('INSERT INTO users (username, email, password) VALUES (?,?,?)', [username,email, hashedPassword]);
-    res.send('User data recieved');
+    
+
+    db.run('INSERT INTO users (username, email, password) VALUES (?,?,?)', [username,email, hashedPassword],
+        function(err){
+            if (err) {
+                console.error('SIGNUP ERROR:', err.message);
+            if (err.message.includes('UNIQUE')){
+                return res.status(409).send({ error: 'an account with that email or username already exists' });
+            }
+                return res.status(500).send({error: 'internal server error'});
+            }
+            res.status(201).send({ message: 'user created successfully' });
+        }
+    );
 
 });
 
