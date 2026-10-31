@@ -5,12 +5,14 @@ const db = require('./db');
 const router = express.Router();
 
 router.post('/signup', function(req, res){
-    if(!email || !password || !username) {
-        return res.status(400).send({ error: 'username, email, and password are required' });
-    }
+    
 const username = req.body.username;
 const email = req.body.email;
 const password = req.body.password;
+    
+    if(!email || !password || !username) {
+        return res.status(400).send({ error: 'username, email, and password are required' });
+    }
 
 
 bcrypt.hash(password, 10, function(err, hashedPassword){
