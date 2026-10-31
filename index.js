@@ -84,7 +84,11 @@ app.post('/cost', requireLogin, function(req, res){
 // app.post handles a single reading being sent to /readings, inserts it, and replies that it was received
 app.post('/readings', requireLogin, function(req, res) {
   for (let i = 0; i < req.body.length; i++){
-  db.run('INSERT INTO readings (date, kwh, user_id) VALUES (?,?,?)', [req.body[i].date, req.body[i].kwh, req.session.user.id]);
+  db.run('INSERT INTO readings (date, kwh, user_id) VALUES (?,?,?) ON CONFLICT (user_id, date) DO UPDATE SET kwh = excluded.kwh', [req.body[i].date, req.body[i].kwh, req.session.user.id], function(err) {
+    if (err){
+      console.log('READING INSERT ERROR:', err.message);
+    }
+  });
   }
   res.send('Batch received');
 });

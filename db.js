@@ -20,10 +20,20 @@ db.run('ALTER TABLE summaries ADD COLUMN user_id INTEGER REFERENCES users(id)', 
       console.log('ALTER ERROR:', err.message);
     }
   });
-  db.run('ALTER TABLE readings ADD COLUMN user_id INTEGER REFERENCES users(id)', function(err){
+  db.run('ALTER TABLE readings ADD COLUMN user_id INTEGER REFERENCES users(id) ', function(err){
     if (err && !err.message.includes('duplicate column')) {
       console.log('ALTER ERROR:', err.message);
     }
+    db.run('DELETE FROM readings WHERE id NOT IN (SELECT MAX(id) FROM readings GROUP BY user_id, date)', function(err) {
+      if (err) {
+        console.log('DELETE ERROR:', err.message);
+      }
+      db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_readings_user_date ON readings(user_id, date)', function(err) {
+        if (err) {
+          console.log('CREATE INDEX ERROR:', err.message);
+        }
+    });
+  });
   });
 
 module.exports = db;
