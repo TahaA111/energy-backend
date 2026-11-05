@@ -69,5 +69,12 @@ db.get('SELECT * FROM users WHERE email = ?', [email], function(err, user){
 });
 });
 
+router.get('/me', function(req, res){
+    if (!req.session.user) {
+        return res.json({ user: null });
+    }
+    res.json({ user: req.session.user });
+});
+
 
 module.exports = router;
