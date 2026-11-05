@@ -69,10 +69,6 @@ app.post('/cost', requireLogin, function(req, res){
 
   fetch (url)
     .then(function(res2){ return res2.json(); })
-    .catch(function(err){
-        console.log('EIA API ERROR:', err.message);
-        res.status(502).send({ error: 'Failed to fetch electricity price' });
-    })
     .then(function(data){
         let price = Number(data.response.data[0].price);
         let pricePerKwhInDollars = price / 100 ;
@@ -80,6 +76,10 @@ app.post('/cost', requireLogin, function(req, res){
         cost = Math.round(cost * 100) / 100;
 
         res.send({ cost : cost });
+    })
+    .catch(function(err){
+        console.log('EIA API ERROR:', err.message);
+        res.status(502).send({ error: 'Failed to fetch electricity price' });
     });
 
 
