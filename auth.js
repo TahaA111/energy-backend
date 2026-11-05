@@ -76,5 +76,17 @@ router.get('/me', function(req, res){
     res.json({ user: req.session.user });
 });
 
+router.post('/logout', function(req, res){
+
+req.session.destroy(function(err){
+    if(err) {
+        console.error('LOGOUT ERROR:', err.message);
+        return res.status(500).send({ error: 'Failed to logout' });
+    }
+    res.clearCookie('connect.sid');
+    res.send({ message: 'logout successful' });
+});
+});
+
 
 module.exports = router;
