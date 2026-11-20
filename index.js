@@ -78,6 +78,10 @@ app.get('/', function(req, res) {
 
 app.post('/cost', requireLogin, function(req, res){
 
+  if (!isNonNegNumber(req.body.total)){
+    return res.status(400).send({ error: ' total must be a non-negative number'});
+  }
+
   const url = 'https://api.eia.gov/v2/electricity/retail-sales/data/?api_key=' + process.env.EIA_API_KEY + '&frequency=monthly&data[]=price&facets[stateid][]=CA&facets[sectorid][]=RES&sort[0][column]=period&sort[0][direction]=desc&length=1';
 
   fetch (url)
@@ -112,6 +116,9 @@ app.post('/readings', requireLogin, function(req, res) {
     if (!rows[i] || !isValidDate(rows[i].date) || !isValidKwh(rows[i].kwh)) {
       return res.status(400).send({ error: 'Invalid reading at row ' + (i + 1) });
     }
+    function isNonNegNumber(value){
+      return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+    }
   }
 
   for (let i = 0; i < rows.length; i++) {
@@ -126,6 +133,15 @@ app.post('/readings', requireLogin, function(req, res) {
 
 // app.post handles a summary being sent to /summaries, inserts it, and replies that it was received
 app.post('/summaries', requireLogin, function(req, res) {
+  const { total, average, min, max, cost} = req.body;
+  
+  if (![total, average, min, max].every(isNonNegNumber)) {
+    return res.status(400).send({ error: 'total, average, min, and max must be non-negative numbers' });
+  }
+  if (cost !== undefined && cost !== null && !isNonNegNumber(cost)){
+    return res.status(400).send({ error: 'cost must be a non-negative number' });
+  }
+
   db.run('INSERT INTO summaries (total, average, min, max, cost, user_id) VALUES (?,?,?,?,?,?)', [req.body.total, req.body.average, req.body.min, req.body.max, req.body.cost, req.session.user.id], function(err) {
     if (err) {
       console.log('INSERT ERROR:', err.message);
