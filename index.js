@@ -33,6 +33,9 @@ function isValidDate(value){
 function isValidKwh(value){
     return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1000;
   }
+function isNonNegNumber(value){
+      return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+    }
 
 
 const session = require('express-session');
@@ -115,9 +118,6 @@ app.post('/readings', requireLogin, function(req, res) {
   for (let i = 0; i < rows.length; i++) {
     if (!rows[i] || !isValidDate(rows[i].date) || !isValidKwh(rows[i].kwh)) {
       return res.status(400).send({ error: 'Invalid reading at row ' + (i + 1) });
-    }
-    function isNonNegNumber(value){
-      return typeof value === 'number' && Number.isFinite(value) && value >= 0;
     }
   }
 
