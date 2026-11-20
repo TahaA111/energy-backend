@@ -22,6 +22,17 @@ function requireLogin(req,res, next){
   }
   next();
 }
+ // A real date in YYYY-MM-DD form, like 2026-01-07
+function isValidDate(value){
+    if (typeof value !== 'string') return false;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const d = new Date(value + 'T00:00:00Z');
+    return !isNaN(d) && d.toISOString().slice(0,10) === value;
+  }
+  // A real, non-negative number within a sensible range
+function isValidKwh(value){
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1000;
+  }
 
 
 const session = require('express-session');
@@ -43,10 +54,12 @@ app.use(session({
 }));
 
 // app.get handles reading back every saved reading from the database
-
 app.get('/readings', requireLogin, function(req, res){
-
   db.all('SELECT * FROM readings WHERE user_id = ? ORDER BY date DESC', [req.session.user.id], function(err, rows){
+    if (err) {
+      console.log('READINGS QUERY ERROR:', err.message);
+      return res.status(500).send({ error: 'Could not load readings' });
+    }
     res.send(rows);
   });
 });
@@ -87,14 +100,28 @@ app.post('/cost', requireLogin, function(req, res){
 
 // app.post handles a single reading being sent to /readings, inserts it, and replies that it was received
 app.post('/readings', requireLogin, function(req, res) {
-  for (let i = 0; i < req.body.length; i++){
-  db.run('INSERT INTO readings (date, kwh, user_id) VALUES (?,?,?) ON CONFLICT (user_id, date) DO UPDATE SET kwh = excluded.kwh', [req.body[i].date, req.body[i].kwh, req.session.user.id], function(err) {
-    if (err){
-      console.log('READING INSERT ERROR:', err.message);
-    }
-  });
+  const rows = req.body;
+
+  // Must be a list of readings, not empty, and not absurdly long
+  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 5000) {
+    return res.status(400).send({ error: 'Expected a list of 1 to 5000 readings' });
   }
-  res.send('Batch received');
+
+  // Check every row before saving any of them
+  for (let i = 0; i < rows.length; i++) {
+    if (!rows[i] || !isValidDate(rows[i].date) || !isValidKwh(rows[i].kwh)) {
+      return res.status(400).send({ error: 'Invalid reading at row ' + (i + 1) });
+    }
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    db.run('INSERT INTO readings (date, kwh, user_id) VALUES (?,?,?) ON CONFLICT (user_id, date) DO UPDATE SET kwh = excluded.kwh', [rows[i].date, rows[i].kwh, req.session.user.id], function(err) {
+      if (err) {
+        console.log('READING INSERT ERROR:', err.message);
+      }
+    });
+  }
+  res.send({ message: 'Batch received' });
 });
 
 // app.post handles a summary being sent to /summaries, inserts it, and replies that it was received
