@@ -16,10 +16,11 @@ const authRoutes = require('./auth');
 const rateLimit = require('express-rate-limit');
 
 const helmet = require('helmet');
-app.use(helmet());
+
 
 // This creates an express object for me to use
 const app = express();
+app.use(helmet());
 
 function requireLogin(req,res, next){
   if (!req.session.user) {
@@ -182,11 +183,12 @@ app.post('/summaries', requireLogin, function(req, res) {
 });
 
 
-
+// Unknown routes: short JSON reply instead of Express's HTML page
 app.use(function(req, res){
   res.status(404).send( {error: 'Not Found' });
 });
 
+// Any error a route didn't handle: log the details, reply with a short message
 app.use(function(err, req, res, next){
   console.error('UNHANDLED ERROR:', err.message);
 
