@@ -15,6 +15,9 @@ const authRoutes = require('./auth');
 
 const rateLimit = require('express-rate-limit');
 
+const helmet = require('helmet');
+app.use(helmet());
+
 // This creates an express object for me to use
 const app = express();
 
@@ -179,6 +182,23 @@ app.post('/summaries', requireLogin, function(req, res) {
 });
 
 
+
+app.use(function(req, res){
+  res.status(404).send( {error: 'Not Found' });
+});
+
+app.use(function(err, req, res, next){
+  console.error('UNHANDLED ERROR:', err.message);
+
+  if(err.type === 'entity.parse.failed'){
+
+    return res.status(400).send({ error: 'Invalid JSON' });
+  }
+  if (err.type === 'entity.too.large'){
+    return res.status(413).send({ error : 'Request too large'})
+  }
+  res.status(500).send({ error: 'Something went wrong' });
+});
 
 // app.listen is what actually starts the server, and the callback confirms it's running with no errors
 app.listen(3000, function() {
