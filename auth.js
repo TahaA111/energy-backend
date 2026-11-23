@@ -10,9 +10,19 @@ const username = req.body.username;
 const email = req.body.email;
 const password = req.body.password;
     
-    if(!email || !password || !username) {
-        return res.status(400).send({ error: 'username, email, and password are required' });
-    }
+ if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string'){
+    return res.status(400).send({ error: 'username, email, and password are required' });
+ }
+ 
+ if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) {
+    return res.status(400).send({ error: 'Username must be 3-20 letters, numbers, or underscores'});
+ }
+ if(email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    return res.status(400).send({ error: 'Please enter a valid email address' });
+ }
+ if (password.length < 8 || password.length > 72){
+    return res.status(400).send({ error: 'Password must be 8-72 characters' });
+ }
 
 
 bcrypt.hash(password, 10, function(err, hashedPassword){
