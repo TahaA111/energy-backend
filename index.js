@@ -47,7 +47,7 @@ app.use(express.json());
 
 // Strict limit for login and signup: 10 tries per 15 minutes per IP
 const authLimiter = rateLimit({
-  windowsMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000,
   limit: 10,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
@@ -56,7 +56,7 @@ const authLimiter = rateLimit({
 
 // Looser limit for everything else: 300 requests per 15 minutes per IP
 const apiLimiter = rateLimit ({
-  windowsMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000,
   limit: 300,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
