@@ -9,17 +9,23 @@ router.post('/signup', function(req, res){
 const username = req.body.username;
 const email = req.body.email;
 const password = req.body.password;
-    
+
+// All three must be text
  if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string'){
     return res.status(400).send({ error: 'username, email, and password are required' });
  }
  
+ // Username: 3-20 letters, numbers, or underscoress
  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) {
     return res.status(400).send({ error: 'Username must be 3-20 letters, numbers, or underscores'});
  }
+
+ // Email: something@something.something, and not absurdly long
  if(email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
     return res.status(400).send({ error: 'Please enter a valid email address' });
  }
+
+ // Password: at least 8 characters, at most 72 (bcrypt's limit)
  if (password.length < 8 || password.length > 72){
     return res.status(400).send({ error: 'Password must be 8-72 characters' });
  }
