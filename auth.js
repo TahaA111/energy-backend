@@ -69,13 +69,18 @@ db.get('SELECT * FROM users WHERE email = ?', [email], function(err, user){
 
     }
 
-    req.session.user = {
-        id: user.id,
-        username: user.username,
-        email: user.email
-    };
+    req.session.regenerate(function(err){
+        if(err) {
+            return res.status(500).send({ error: 'login failed' });
 
-    res.send({ message: 'login successful', userId: user.id, username: user.username });
+        }
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            email: user.email
+        };
+        res.send({ message : 'login successful', userId: user.id, username: user.username });
+    });
 
     
     
