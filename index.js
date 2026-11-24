@@ -111,7 +111,7 @@ app.get('/', function(req, res) {
 app.post('/cost', requireLogin, function(req, res){
 
   if (!isNonNegNumber(req.body.total)){
-    return res.status(400).send({ error: ' total must be a non-negative number' });
+    return res.status(400).send({ error: 'total must be a non-negative number' });
   }
 
   const url = 'https://api.eia.gov/v2/electricity/retail-sales/data/?api_key=' + process.env.EIA_API_KEY + '&frequency=monthly&data[]=price&facets[stateid][]=CA&facets[sectorid][]=RES&sort[0][column]=period&sort[0][direction]=desc&length=1';
